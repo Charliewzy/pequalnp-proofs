@@ -1,7 +1,8 @@
-import Mathlib
 import PEqualNP.Defs
 
-namespace PEqualNP.Outside.L_meta_14834_restriction
+namespace PEqualNP.Outside.L_meta_14834
+
+namespace Restriction
 
 open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity
 
@@ -555,9 +556,9 @@ theorem remap_size {n m : ℕ} (π : Fin n → Fin m) (h : (Fin n → Bool) → 
     have := (rel_fold n m π C.gates _ _ (rel_init n m π x)).2.2 C.output
     exact this
 
-end PEqualNP.Outside.L_meta_14834_restriction
+end Restriction
 
-namespace PEqualNP.Outside.L_meta_14834_minor.Signed
+namespace Minor.Signed
 
 section Live
 
@@ -1240,11 +1241,11 @@ theorem bound (gs : List Gate) (o : ℕ) (hg : ∀ g ∈ gs, legal g)
     (he : ∀ x : Fin 6 → Bool, Circuit.eval ⟨gs,o⟩ (List.ofFn x) = F x) : 7 < binaryCost gs :=
   bound_from_search rows rfl (by decide) reject (by decide +kernel) gs o hg he
 
-end PEqualNP.Outside.L_meta_14834_minor.Signed
+end Minor.Signed
 
-namespace PEqualNP.Outside.L_meta_14834_not_count
+namespace NotCount
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14834_restriction
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14834.Restriction
 
 def isNot (g : Gate) : Bool :=
   match g.op with
@@ -1303,12 +1304,12 @@ theorem elim_not_count (n : ℕ) (gs : List Gate) (acc : List Stat × List Gate)
       List.countP_append (l₁:=[g]) (l₂:=gs)
     omega
 
-end PEqualNP.Outside.L_meta_14834_not_count
+end NotCount
 
-namespace PEqualNP.Outside.L_meta_14834_binary_count
+namespace BinaryCount
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14834_restriction
-open L_meta_14834_not_count
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14834.Restriction
+open PEqualNP.Outside.L_meta_14834.NotCount
 
 def binaryCount (gs : List Gate) : ℕ := gs.countP (fun g => !isNot g)
 
@@ -1389,12 +1390,12 @@ theorem elim_binary_count_lt (n k : ℕ) (gs : List Gate) (acc : List Stat × Li
   change binaryCount (elim n post (elimStep n act g)).2 + 1 ≤ _
   omega
 
-end PEqualNP.Outside.L_meta_14834_binary_count
+end BinaryCount
 
-namespace PEqualNP.Outside.L_meta_14834_positive_pivot
+namespace PositivePivot
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14834_restriction
-open L_meta_14834_not_count L_meta_14834_binary_count
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14834.Restriction
+open PEqualNP.Outside.L_meta_14834.NotCount PEqualNP.Outside.L_meta_14834.BinaryCount
 
 theorem except_snoc {R : Bool → Bool → Prop} {w w' : List Bool} {n : ℕ} {a b : Bool}
     (hSize : w.length = w'.length)
@@ -1614,12 +1615,12 @@ theorem one_not_positive_pin_saves_binary (n : ℕ) (C : Circuit) (hFit : FanInT
     rw [hst] at h
     exact h
 
-end PEqualNP.Outside.L_meta_14834_positive_pivot
+end PositivePivot
 
-namespace PEqualNP.Outside.L_meta_14834_aux
+namespace Aux
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14834_restriction
-open L_meta_14834_not_count L_meta_14834_binary_count L_meta_14834_positive_pivot
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14834.Restriction
+open PEqualNP.Outside.L_meta_14834.NotCount PEqualNP.Outside.L_meta_14834.BinaryCount PEqualNP.Outside.L_meta_14834.PositivePivot
 
 def edges : List ℕ := [0, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 3, 7, 4, 7, 5, 7]
 
@@ -1652,7 +1653,7 @@ theorem second_nonconstant : ∃ x y : Fin 6 → Bool, graphSix x ≠ graphSix y
   refine ⟨fun _ => false,fun _ => true,?_⟩
   decide +kernel
 
-theorem graph_six_is_minor : ∀ x : Fin 6 → Bool, graphSix x = L_meta_14834_minor.Signed.F x := by
+theorem graph_six_is_minor : ∀ x : Fin 6 → Bool, graphSix x = PEqualNP.Outside.L_meta_14834.Minor.Signed.F x := by
   decide +kernel
 
 def witness : List Gate := [
@@ -1731,11 +1732,11 @@ theorem no_savings (gs : List Gate) (out : ℕ)
       one_not_positive_pin_saves_binary 7 U hUfit hUcount graphEight hUEv first_pivot first_nonconstant
     obtain ⟨E,hEfit,_hEcount,hEsize,hEEv⟩ :=
       one_not_positive_pin_saves_binary 6 D hDfit hDcount graphSeven hDEv second_pivot second_nonconstant
-    have hEBin := L_meta_14834_minor.Signed.bound E.gates E.output
-      (fun g hg => by simpa only [L_meta_14834_minor.Signed.legal, Set.mem_insert_iff,Set.mem_singleton_iff] using hEfit g hg)
+    have hEBin := PEqualNP.Outside.L_meta_14834.Minor.Signed.bound E.gates E.output
+      (fun g hg => by simpa only [PEqualNP.Outside.L_meta_14834.Minor.Signed.legal, Set.mem_insert_iff,Set.mem_singleton_iff] using hEfit g hg)
       (fun x => (hEEv x).trans (graph_six_is_minor x))
-    have sameCount : L_meta_14834_minor.Signed.binaryCost E.gates = binaryCount E.gates := by
-      unfold L_meta_14834_minor.Signed.binaryCost binaryCount
+    have sameCount : PEqualNP.Outside.L_meta_14834.Minor.Signed.binaryCost E.gates = binaryCount E.gates := by
+      unfold PEqualNP.Outside.L_meta_14834.Minor.Signed.binaryCost binaryCount
       rw [← List.countP_eq_length_filter]
       congr 1
       funext g
@@ -1759,7 +1760,9 @@ theorem no_savings (gs : List Gate) (out : ℕ)
     · exact Or.inr ho
     · exact (hExists ⟨g,hg,ho⟩).elim
 
-end PEqualNP.Outside.L_meta_14834_aux
+end Aux
+
+end PEqualNP.Outside.L_meta_14834
 
 theorem PEqualNP.Outside.L_meta_14834 : (∀ (gates : List PEqualNP.CircuitLowerBounds.Gate) (o : ℕ), (∀ g ∈ gates, (g.op = PEqualNP.CircuitLowerBounds.GateOp.and ∨ g.op = PEqualNP.CircuitLowerBounds.GateOp.or ∨ g.op = PEqualNP.CircuitLowerBounds.GateOp.not) ∧ g.inputs.length ≤ 2) → (∀ i j : Fin gates.length, (gates.get i).op = PEqualNP.CircuitLowerBounds.GateOp.not → (gates.get j).op = PEqualNP.CircuitLowerBounds.GateOp.not → i = j) → (∀ x : Fin 8 → Bool, PEqualNP.CircuitLowerBounds.Circuit.eval ⟨gates, o⟩ (List.ofFn x) = decide (∃ i < ([0, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 3, 7, 4, 7, 5, 7] : List ℕ).length / 2, (List.ofFn x).getD (([0, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 3, 7, 4, 7, 5, 7] : List ℕ).getD (2 * i) 0) false = true ∧ (List.ofFn x).getD (([0, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 3, 7, 4, 7, 5, 7] : List ℕ).getD (2 * i + 1) 0) false = true)) → ∃ (gates' : List PEqualNP.CircuitLowerBounds.Gate) (o' : ℕ), (∀ g ∈ gates', (g.op = PEqualNP.CircuitLowerBounds.GateOp.and ∨ g.op = PEqualNP.CircuitLowerBounds.GateOp.or) ∧ g.inputs.length ≤ 2) ∧ gates'.length ≤ gates.length ∧ ∀ x : Fin 8 → Bool, PEqualNP.CircuitLowerBounds.Circuit.eval ⟨gates', o'⟩ (List.ofFn x) = decide (∃ i < ([0, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 3, 7, 4, 7, 5, 7] : List ℕ).length / 2, (List.ofFn x).getD (([0, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 3, 7, 4, 7, 5, 7] : List ℕ).getD (2 * i) 0) false = true ∧ (List.ofFn x).getD (([0, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 3, 7, 4, 7, 5, 7] : List ℕ).getD (2 * i + 1) 0) false = true)) := by
-  exact L_meta_14834_aux.no_savings
+  exact PEqualNP.Outside.L_meta_14834.Aux.no_savings
