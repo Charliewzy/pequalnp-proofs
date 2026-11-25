@@ -1,7 +1,8 @@
-import Mathlib
 import PEqualNP.Defs
 
-namespace PEqualNP.Outside.L_meta_14222_restriction
+namespace PEqualNP.Outside.L_meta_14222
+
+namespace Restriction
 
 open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity
 
@@ -555,9 +556,9 @@ theorem remap_size {n m : ℕ} (π : Fin n → Fin m) (h : (Fin n → Bool) → 
     have := (rel_fold n m π C.gates _ _ (rel_init n m π x)).2.2 C.output
     exact this
 
-end PEqualNP.Outside.L_meta_14222_restriction
+end Restriction
 
-namespace PEqualNP.Outside.L_meta_14222_minor.Signed
+namespace Minor.Signed
 
 section Live
 
@@ -657,12 +658,12 @@ theorem first_live {ops : α → α → Finset α} {goal : α} {k : ℕ} {s : Fi
 
 end Live
 
-abbrev W := BitVec 1470
+abbrev W := BitVec 88
 
 def ops (x y : W) : List W := [x &&& y, x ||| y, x &&& ~~~y, y &&& ~~~x]
-def sep (x : W) : BitVec 735 := ((x >>> 735) ^^^ x).setWidth 735
-def cuts (ws : List W) : BitVec 735 := ws.foldr (fun w v => sep w ||| v) 0
-def goal : W := (-1 : BitVec 735) ++ (0 : BitVec 735)
+def sep (x : W) : BitVec 44 := ((x >>> 44) ^^^ x).setWidth 44
+def cuts (ws : List W) : BitVec 44 := ws.foldr (fun w v => sep w ||| v) 0
+def goal : W := (-1 : BitVec 44) ++ (0 : BitVec 44)
 def singles {α : Type} : List α → List (α × List α)
   | [] => []
   | a :: rest => (a, rest) :: (singles rest).map (fun (b, bs) => (b, a :: bs))
@@ -709,11 +710,11 @@ theorem pick_two {α : Type} {a b : α} {ws : List α} (ha : a ∈ ws) (hb : b �
 
 abbrev basicOps (a b : W) : Finset W := (ops a b).toFinset
 
-def differs (i : Fin 735) (w : W) : Prop :=
-  w.getLsbD (735+i.val) ≠ w.getLsbD i.val
+def differs (i : Fin 44) (w : W) : Prop :=
+  w.getLsbD (44+i.val) ≠ w.getLsbD i.val
 
 set_option maxRecDepth 100000 in
-theorem ops_differs (i : Fin 735) (a b : W) (z : W) (hz : z ∈ basicOps a b)
+theorem ops_differs (i : Fin 44) (a b : W) (z : W) (hz : z ∈ basicOps a b)
     (hd : differs i z) : differs i a ∨ differs i b := by
   simp only [basicOps, ops, List.mem_toFinset, List.mem_cons, List.not_mem_nil, or_false] at hz
   by_contra! fail
@@ -721,14 +722,14 @@ theorem ops_differs (i : Fin 735) (a b : W) (z : W) (hz : z ∈ basicOps a b)
   apply hd
   unfold differs at ha hb
   simp only [not_not] at ha hb
-  have hi : 735+i.val < 1470 := by omega
-  have hi' : i.val < 1470 := by omega
+  have hi : 44+i.val < 88 := by omega
+  have hi' : i.val < 88 := by omega
   rcases hz with rfl | rfl | rfl | rfl <;>
     simp only [BitVec.getLsbD_and, BitVec.getLsbD_or, BitVec.getLsbD_not, hi, hi', decide_true,
       Bool.true_and, ha, hb]
 
 set_option maxRecDepth 100000 in
-theorem cuts_spec (ws : List W) (i : Fin 735) :
+theorem cuts_spec (ws : List W) (i : Fin 44) :
     (cuts ws).getLsbD i.val = true ↔ ∃ w ∈ ws, differs i w := by
   induction ws with
   | nil => simp [cuts]
@@ -746,7 +747,7 @@ theorem cuts_full {g : W} (hg : g = goal ∨ g = ~~~goal) {k : ℕ} {ws : List W
   intro j hj
   have hw := live_separates (differs ⟨j, hj⟩) (hd ⟨j,hj⟩) (ops_differs ⟨j, hj⟩) h
   have hbit := (cuts_spec ws ⟨j, hj⟩).mpr (by simpa using hw)
-  change (cuts ws)[j] = (BitVec.allOnes 735)[j]
+  change (cuts ws)[j] = (BitVec.allOnes 44)[j]
   rw [BitVec.getElem_allOnes]
   simpa only [BitVec.getLsbD_eq_getElem hj] using hbit
 
@@ -923,11 +924,11 @@ theorem and_reach {av : Finset W} {x y : W} (hx : holds av x) (hy : holds av y) 
   have oldx := hx
   rcases hx with rfl|rfl|⟨a,ha,ea⟩
   · rw [show (0 : W) &&& y = 0 from BitVec.zero_and]; exact .inl const
-  · change reachable av (BitVec.allOnes 1470 &&& y)
+  · change reachable av (BitVec.allOnes 88 &&& y)
     rw [BitVec.allOnes_and]; exact .inl hy
   rcases hy with rfl|rfl|⟨b,hb,eb⟩
   · rw [show x &&& (0 : W) = 0 from BitVec.and_zero]; exact .inl const
-  · change reachable av (x &&& BitVec.allOnes 1470)
+  · change reachable av (x &&& BitVec.allOnes 88)
     rw [BitVec.and_allOnes]; exact .inl oldx
   by_cases h : a = b
   · subst b
@@ -949,12 +950,12 @@ theorem or_reach {av : Finset W} {x y : W} (hx : holds av x) (hy : holds av y) :
     reachable av (x ||| y) := by
   simpa only [BitVec.not_and, BitVec.not_not] using reachable_not (and_reach (holds_not hx) (holds_not hy))
 
-private def bit (k : Fin 1470) (z : W) : Bool := z[k.val]
+private def bit (k : Fin 88) (z : W) : Bool := z[k.val]
 private def step (w : List Bool) (g : Gate) : List Bool :=
   w ++ [g.op.eval (g.inputs.map fun i => w.getD i false)]
 
 set_option maxRecDepth 100000 in
-private theorem read_bit (w : List W) (i : ℕ) (k : Fin 1470) :
+private theorem read_bit (w : List W) (i : ℕ) (k : Fin 88) :
     (w.map (bit k)).getD i false = bit k (w.getD i 0) := by
   by_cases h : i < w.length
   · simp [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_eq_getElem h]
@@ -970,14 +971,14 @@ def action (w : List W) (g : Gate) : W := match g.op with
   | _ => 0
 
 set_option maxRecDepth 100000 in
-theorem action_spec (w : List W) (g : Gate) (hg : legal g) (k : Fin 1470) :
+theorem action_spec (w : List W) (g : Gate) (hg : legal g) (k : Fin 88) :
     step (w.map (bit k)) g = (w ++ [action w g]).map (bit k) := by
   obtain ⟨op,args⟩ := g
   obtain ⟨hop,cap⟩ := hg
   change op = .and ∨ op = .or ∨ op = .not at hop
   change args.length ≤ 2 at cap
   rcases args with _|⟨i,_|⟨j,_|⟨u,tail⟩⟩⟩ <;> simp at cap
-  all_goals have bit0 : (0 : W)[k.val] = false := by change (0#1470)[k.val] = false; simp
+  all_goals have bit0 : (0 : W)[k.val] = false := by change (0#88)[k.val] = false; simp
   all_goals rcases hop with rfl|rfl|rfl <;>
     simp only [step, List.map_cons,List.map_nil,read_bit,List.map_append] <;>
     simp only [action, GateOp.eval, List.foldr_cons,List.foldr_nil,List.head?_cons,List.head?_nil,
@@ -1068,7 +1069,7 @@ def F (x : Fin 6 → Bool) : Bool := (x 0 && x 1) || (x 0 && x 3) || (x 0 && x 4
 
 theorem bound_from_search (inputs : List W) (width : inputs.length = 6)
     (nd : inputs.Nodup) (reject : search 7 inputs = false)
-    (sample : ∀ k : Fin 1470, F (fun i => (inputs.getD i.val 0)[k.val]) = (~~~goal)[k.val])
+    (sample : ∀ k : Fin 88, F (fun i => (inputs.getD i.val 0)[k.val]) = (~~~goal)[k.val])
     (gs : List Gate) (o : ℕ) (hg : ∀ g ∈ gs, legal g)
     (he : ∀ x : Fin 6 → Bool, Circuit.eval ⟨gs,o⟩ (List.ofFn x) = F x) :
     7 < binaryCost gs := by
@@ -1076,7 +1077,7 @@ theorem bound_from_search (inputs : List W) (width : inputs.length = 6)
   have init : ∀ u ∈ inputs, holds inputs.toFinset u := by
     intro u hu
     exact .inr (.inr ⟨u, List.mem_toFinset.mpr hu, .inl rfl⟩)
-  have evaluate (k : Fin 1470) :
+  have evaluate (k : Fin 88) :
       (gs.foldl step (inputs.map (bit k))).getD o false = bit k (~~~goal) := by
     let x (i : Fin 6) : Bool := bit k (inputs.getD i.val 0)
     have same : List.ofFn x = inputs.map (bit k) := by
@@ -1097,24 +1098,154 @@ theorem bound_from_search (inputs : List W) (width : inputs.length = 6)
     | step _ ih => exact Or.inl ih
   exact Bool.noConfusion (reject.symm.trans (search_complete ht 7 inputs nd (lift low run)))
 
-def rows : List W :=
-  [0x34a9491180000540020000401980020400298002003080c00100080440020005000010e041500820000021101100044200000880092140010401402004080004804080040403481c4002800044000000440001208004800000000005731367771f613a8efe2deed5363475f37993f7fec9ffd04b55115f52c9736d77f9cdb5a4f63a9fad9f5d2cfe5ffdd4bef3b3ed711196895b5ec5637fd677c338ae0942fddef4a2e2ecf64bb6e3b3fc643ecddd9fa76796ffeadff6f, 0x800292021484100814000100040c10f0bb000c085d024408c01004038f04020091448000000020c202184023c02302a5811840002404805002e4110841000400408046090200224100a10c0801208448084c240800001024d8a03816cbcd89278e6d308b9feabdb367caadbc9f6e1c992cb55799b1b5d3ef2ee3352ed0fadf6779df0030c78bac9fbb1c27e95e47d3fff6eaf7defbff5be96ff32ce7d7d69f03442e423f777bb5ded42ba7f3b9c6cab1be46ee16b5f8130, 0x10820a500a3584a501c0014300408224266259d408054085a005445046382086910c010a140000a8080b1e332d000020701181aa11121f211a10144224002a01160a8c00528034f35403260984001b0200038a170c42080241a0021232e315beee2fef7f8c5b1fb7af915efbb56eee0a71bccaa3d9f6e651556fca7f44e305f5bca56f656e23fdf7e034bfca9c1cc7a40adf573a82d6badd8bb2a76b656a1a8d4612bbd77ab1044a39aff17fcce3072d944fc67fb86fbcca, 0x20104002c08230087a18fa0016270840800120091208810051282105010493100463a480c24094405194200cc04dc18082a85810c4282010a100a881098a1406217020182c09000803f40130218d0428332825205221b2f98211d04c28e88a791d0ef99720cf3f8febe79b3fb32ad4eb72febacea898d952c3e3d74dbbd1ab1bcaff5fed5a8ceddf0bdd33bf296b49186cecd34c8ff376ecc3d2da57de6dacba2a4a17f4714ae6b35c91de18f731dd35f3b994beb53cd0b2, 0xc20610e20401a00bc019a90ea216c53189d000a05989122010a182c28048d380052ca2108e04a1467944140900eb9808bc87e446e0980dec488ab0c0b16503601b040930d35030c2948d1d0019104996b081140121422e42652b8c4d1934b86caad1dfd671d627273734b25374f7a94ab3fc30d6e2ca3124f5dde7765f3fd78c39879966d5ea4b7ac898e4ff4fed2a79238d8e64a7eb8f544479dcb659bda0555f7f690ec349e15c30f7fea9db3e2f34dbab26a3661465d, 0x494024ec21538ab10163e239c0200d09441220c5a28118072ceb8068305984aa68802d1530a69100d5e1940c08c470082463b70f801a1d0a010888001812c030083c3960b8c81582a31c433332d6401113221285227a2801060380ccacf6ee41e9b0c51d9486c3f15c934d1cffff387b4080074b26275ef3419f3ae2d277cdd7172a7d8ee359970f33e057c6b8d31e3a7fb2506da1d956b2b0fd2fb1e31cfc8e75d4f19eb9bfd65aaf2ef9b2ed17c3b46cb89a61eafb973]
+def rows : List W := [0x110214152113312743f, 0x20442c484a462cc6c48cf, 0x84f0068d0c98cf08f8f0c, 0xe0b00d002a0e0f00f00ff0, 0xf7000f96000ff000fff000, 0xfdfaa000000fffff000000]
+
+def rootBranches : List (W × W × List W) := pairs rows
+
+def leavesReject (t : W × W × List W) : Bool :=
+  dispatch 2 (optimized 6) t.1 t.2.1 t.2.2
+
+theorem rootBranches_length : rootBranches.length = 15 := rfl
 
 set_option maxRecDepth 16000 in
 set_option maxHeartbeats 0 in
-theorem reject : search 7 rows = false := by
+theorem rejected_branch_0 : leavesReject (rootBranches.getD 0 (0,0,[])) = false := by
   decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_1 : leavesReject (rootBranches.getD 1 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_2 : leavesReject (rootBranches.getD 2 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_3 : leavesReject (rootBranches.getD 3 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_4 : leavesReject (rootBranches.getD 4 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_5 : leavesReject (rootBranches.getD 5 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_6 : leavesReject (rootBranches.getD 6 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_7 : leavesReject (rootBranches.getD 7 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_8 : leavesReject (rootBranches.getD 8 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_9 : leavesReject (rootBranches.getD 9 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_10 : leavesReject (rootBranches.getD 10 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_11 : leavesReject (rootBranches.getD 11 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_12 : leavesReject (rootBranches.getD 12 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_13 : leavesReject (rootBranches.getD 13 (0,0,[])) = false := by
+  decide +kernel
+
+set_option maxRecDepth 16000 in
+set_option maxHeartbeats 0 in
+theorem rejected_branch_14 : leavesReject (rootBranches.getD 14 (0,0,[])) = false := by
+  decide +kernel
+
+theorem rejected_branches (i : Fin 15) :
+    leavesReject (rootBranches.getD i.val (0,0,[])) = false := by
+  fin_cases i
+  · exact rejected_branch_0
+  · exact rejected_branch_1
+  · exact rejected_branch_2
+  · exact rejected_branch_3
+  · exact rejected_branch_4
+  · exact rejected_branch_5
+  · exact rejected_branch_6
+  · exact rejected_branch_7
+  · exact rejected_branch_8
+  · exact rejected_branch_9
+  · exact rejected_branch_10
+  · exact rejected_branch_11
+  · exact rejected_branch_12
+  · exact rejected_branch_13
+  · exact rejected_branch_14
+
+set_option maxRecDepth 16000 in
+theorem rejected_full_row : optimized 7 2 rows = false := by
+  have hAny : rootBranches.any leavesReject = false := by
+    apply List.any_eq_false.mpr
+    intro t ht
+    obtain ⟨i, hi⟩ := List.mem_iff_get.mp ht
+    have hlt : i.val < rootBranches.length := i.isLt
+    let j : Fin 15 := ⟨i.val,by simpa only [rootBranches_length] using hlt⟩
+    have h := rejected_branches j
+    change leavesReject (rootBranches.getD i.val (0,0,[])) = false at h
+    rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hlt] at h
+    have h' : leavesReject (rootBranches.get i) = false := h
+    rw [← hi,h']
+    decide
+  change ((rows == [goal] || rows == [~~~goal]) ||
+    rootBranches.any leavesReject) = false
+  rw [hAny]
+  decide +kernel
+
+theorem no_short_root : rows.sublists.all
+    (fun ws => (ws == rows) || (cuts ws != -1)) = true := by
+  decide +kernel
+
+theorem reject : search 7 rows = false := by
+  apply List.any_eq_false.mpr
+  intro ws hws
+  have hn := List.all_eq_true.mp no_short_root ws hws
+  by_cases hw : ws = rows
+  · subst ws
+    change ¬(decide (6 ≤ 8) && (cuts rows == -1) && optimized 7 2 rows) = true
+    simp only [rejected_full_row,Bool.and_false,Bool.false_and,Bool.false_eq_true,not_false_eq_true]
+  · have hc : (cuts ws == -1) = false := by
+      simpa [hw,beq_iff_eq] using hn
+    simp only [hc,Bool.and_false,Bool.false_and,Bool.false_eq_true,not_false_eq_true]
 
 set_option maxRecDepth 8000 in
 theorem bound (gs : List Gate) (o : ℕ) (hg : ∀ g ∈ gs, legal g)
     (he : ∀ x : Fin 6 → Bool, Circuit.eval ⟨gs,o⟩ (List.ofFn x) = F x) : 7 < binaryCost gs :=
   bound_from_search rows rfl (by decide) reject (by decide +kernel) gs o hg he
 
-end PEqualNP.Outside.L_meta_14222_minor.Signed
+end Minor.Signed
 
-namespace PEqualNP.Outside.L_meta_14222_not_count
+namespace NotCount
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14222_restriction
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14222.Restriction
 
 def isNot (g : Gate) : Bool :=
   match g.op with
@@ -1173,12 +1304,12 @@ theorem elim_not_count (n : ℕ) (gs : List Gate) (acc : List Stat × List Gate)
       List.countP_append (l₁:=[g]) (l₂:=gs)
     omega
 
-end PEqualNP.Outside.L_meta_14222_not_count
+end NotCount
 
-namespace PEqualNP.Outside.L_meta_14222_binary_count
+namespace BinaryCount
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14222_restriction
-open L_meta_14222_not_count
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14222.Restriction
+open PEqualNP.Outside.L_meta_14222.NotCount
 
 def binaryCount (gs : List Gate) : ℕ := gs.countP (fun g => !isNot g)
 
@@ -1259,12 +1390,12 @@ theorem elim_binary_count_lt (n k : ℕ) (gs : List Gate) (acc : List Stat × Li
   change binaryCount (elim n post (elimStep n act g)).2 + 1 ≤ _
   omega
 
-end PEqualNP.Outside.L_meta_14222_binary_count
+end BinaryCount
 
-namespace PEqualNP.Outside.L_meta_14222_positive_pivot
+namespace PositivePivot
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14222_restriction
-open L_meta_14222_not_count L_meta_14222_binary_count
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14222.Restriction
+open PEqualNP.Outside.L_meta_14222.NotCount PEqualNP.Outside.L_meta_14222.BinaryCount
 
 theorem except_snoc {R : Bool → Bool → Prop} {w w' : List Bool} {n : ℕ} {a b : Bool}
     (hSize : w.length = w'.length)
@@ -1484,12 +1615,12 @@ theorem one_not_positive_pin_saves_binary (n : ℕ) (C : Circuit) (hFit : FanInT
     rw [hst] at h
     exact h
 
-end PEqualNP.Outside.L_meta_14222_positive_pivot
+end PositivePivot
 
-namespace PEqualNP.Outside.L_meta_14222_aux
+namespace Aux
 
-open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity L_meta_14222_restriction
-open L_meta_14222_not_count L_meta_14222_binary_count L_meta_14222_positive_pivot
+open PEqualNP.CircuitLowerBounds PEqualNP.MetaComplexity PEqualNP.Outside.L_meta_14222.Restriction
+open PEqualNP.Outside.L_meta_14222.NotCount PEqualNP.Outside.L_meta_14222.BinaryCount PEqualNP.Outside.L_meta_14222.PositivePivot
 
 def edges : List ℕ := [0, 4, 1, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 4, 7]
 
@@ -1522,7 +1653,7 @@ theorem second_nonconstant : ∃ x y : Fin 6 → Bool, graphSix x ≠ graphSix y
   refine ⟨fun _ => false,fun _ => true,?_⟩
   decide +kernel
 
-theorem graph_six_is_minor : ∀ x : Fin 6 → Bool, graphSix x = L_meta_14222_minor.Signed.F x := by
+theorem graph_six_is_minor : ∀ x : Fin 6 → Bool, graphSix x = PEqualNP.Outside.L_meta_14222.Minor.Signed.F x := by
   decide +kernel
 
 def witness : List Gate := [
@@ -1601,11 +1732,11 @@ theorem no_savings (gs : List Gate) (out : ℕ)
       one_not_positive_pin_saves_binary 7 U hUfit hUcount graphEight hUEv first_pivot first_nonconstant
     obtain ⟨E,hEfit,_hEcount,hEsize,hEEv⟩ :=
       one_not_positive_pin_saves_binary 6 D hDfit hDcount graphSeven hDEv second_pivot second_nonconstant
-    have hEBin := L_meta_14222_minor.Signed.bound E.gates E.output
-      (fun g hg => by simpa only [L_meta_14222_minor.Signed.legal, Set.mem_insert_iff,Set.mem_singleton_iff] using hEfit g hg)
+    have hEBin := PEqualNP.Outside.L_meta_14222.Minor.Signed.bound E.gates E.output
+      (fun g hg => by simpa only [PEqualNP.Outside.L_meta_14222.Minor.Signed.legal, Set.mem_insert_iff,Set.mem_singleton_iff] using hEfit g hg)
       (fun x => (hEEv x).trans (graph_six_is_minor x))
-    have sameCount : L_meta_14222_minor.Signed.binaryCost E.gates = binaryCount E.gates := by
-      unfold L_meta_14222_minor.Signed.binaryCost binaryCount
+    have sameCount : PEqualNP.Outside.L_meta_14222.Minor.Signed.binaryCost E.gates = binaryCount E.gates := by
+      unfold PEqualNP.Outside.L_meta_14222.Minor.Signed.binaryCost binaryCount
       rw [← List.countP_eq_length_filter]
       congr 1
       funext g
@@ -1629,7 +1760,9 @@ theorem no_savings (gs : List Gate) (out : ℕ)
     · exact Or.inr ho
     · exact (hExists ⟨g,hg,ho⟩).elim
 
-end PEqualNP.Outside.L_meta_14222_aux
+end Aux
+
+end PEqualNP.Outside.L_meta_14222
 
 theorem PEqualNP.Outside.L_meta_14222 : (∀ (gates : List PEqualNP.CircuitLowerBounds.Gate) (o : ℕ), (∀ g ∈ gates, (g.op = PEqualNP.CircuitLowerBounds.GateOp.and ∨ g.op = PEqualNP.CircuitLowerBounds.GateOp.or ∨ g.op = PEqualNP.CircuitLowerBounds.GateOp.not) ∧ g.inputs.length ≤ 2) → (∀ i j : Fin gates.length, (gates.get i).op = PEqualNP.CircuitLowerBounds.GateOp.not → (gates.get j).op = PEqualNP.CircuitLowerBounds.GateOp.not → i = j) → (∀ x : Fin 8 → Bool, PEqualNP.CircuitLowerBounds.Circuit.eval ⟨gates, o⟩ (List.ofFn x) = decide (∃ i < ([0, 4, 1, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 4, 7] : List ℕ).length / 2, (List.ofFn x).getD (([0, 4, 1, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 4, 7] : List ℕ).getD (2 * i) 0) false = true ∧ (List.ofFn x).getD (([0, 4, 1, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 4, 7] : List ℕ).getD (2 * i + 1) 0) false = true)) → ∃ (gates' : List PEqualNP.CircuitLowerBounds.Gate) (o' : ℕ), (∀ g ∈ gates', (g.op = PEqualNP.CircuitLowerBounds.GateOp.and ∨ g.op = PEqualNP.CircuitLowerBounds.GateOp.or) ∧ g.inputs.length ≤ 2) ∧ gates'.length ≤ gates.length ∧ ∀ x : Fin 8 → Bool, PEqualNP.CircuitLowerBounds.Circuit.eval ⟨gates', o'⟩ (List.ofFn x) = decide (∃ i < ([0, 4, 1, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 4, 7] : List ℕ).length / 2, (List.ofFn x).getD (([0, 4, 1, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 4, 7] : List ℕ).getD (2 * i) 0) false = true ∧ (List.ofFn x).getD (([0, 4, 1, 4, 0, 5, 1, 5, 0, 6, 2, 6, 3, 6, 0, 7, 1, 7, 2, 7, 4, 7] : List ℕ).getD (2 * i + 1) 0) false = true)) := by
-  exact L_meta_14222_aux.no_savings
+  exact PEqualNP.Outside.L_meta_14222.Aux.no_savings
